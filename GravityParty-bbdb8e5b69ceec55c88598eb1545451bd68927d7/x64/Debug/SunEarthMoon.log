@@ -1,0 +1,3 @@
+﻿  main.cpp
+F:\GLtut\SunEarthMoon\main.cpp(205,33): warning C4305: 'argument': truncation from 'double' to 'GLclampf'
+  SunEarthMoon.vcxproj -> F:\GLtut\SunEarthMoon\x64\Debug\SunEarthMoon.exe
