@@ -64,3 +64,44 @@ glm::vec3 Star::scaleVec()
 	return glm::vec3(scale,scale,scale);
 }
 
+
+Planet::Planet(int scale_= 1, float angularSpeed_=1.0f,float distance_ = 0.0f)
+{
+	if (scale_ >= 1.0f && scale_ <= 10.0f)
+	{
+		Planet::scale = float(scale_)/2.0f;
+	}
+	else
+	{
+		Planet::scale=float(scale_);
+	}
+
+	
+	Planet::scale = scale / 5.0f;
+
+	Planet::angularSpeed = angularSpeed_;
+	Planet::distance = distance_;
+}
+
+
+const float Planet::getScale()
+{
+	return scale;
+}
+
+const float Planet::getAngularSpeed()
+{
+	return angularSpeed;
+}
+
+
+glm::vec3 Planet::scaleVec()
+{
+	return glm::vec3(scale,scale,scale);
+}
+const float Planet::getDistance()
+{
+	return Planet::distance;
+}
+
+

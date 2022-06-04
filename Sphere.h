@@ -10,6 +10,7 @@ class Sphere
 private:
 	int numVertices;
 	int numIndices;
+	float radius;
 	std::vector<int>indices;
 	std::vector<glm::vec3>vertices;
 	std::vector<glm::vec2>texCoords;

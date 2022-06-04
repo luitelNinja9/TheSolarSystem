@@ -20,9 +20,20 @@ float moveSensitivity = 0.5f;
 
 //
 std::vector<Star>stars;
-std::vector<Star>stars_copy;
+std::vector<Planet>planets;
+
 
 Star sun = Star(3, 0.3f, "8k_sun.jpg", glm::vec3(0.0f, 0.0f, 0.0f));
+Planet mercury = Planet(4, 0.2f, 2.0f);
+Planet venus = Planet(3, 0.2f, 2.5f);
+Planet earth = Planet(5, 0.2f, 3.5f);
+Planet mars = Planet(3, 0.2f, 5.0f);
+Planet jupyter = Planet(10, 0.2f, 7.0f);
+Planet saturn = Planet(8, 0.2f, 8.5f);
+Planet uranus = Planet(7, 0.2f, 9.8f);
+Planet neptune = Planet(6, 0.2f, 11.0f);
+
+GLuint planet_textures[8];
 
 
 void installLights(glm::mat4 vMatrix);
@@ -37,7 +48,7 @@ void installLights(glm::mat4 vMatrix);
 //window
 //int width, height;
 
-int addStar_;
+//int addStar_;
 
 double xpos, ypos;
 
@@ -227,10 +238,32 @@ void init(GLFWwindow* window)
 	moonTexture = loadTexture("8k_moon.jpg");
 	earthTexture = loadTexture("2k_earth_daymap.jpg");
 
-	planetTexture = loadTexture("2k_earth_daymap.jpg");
+	planet_textures[0] = loadTexture("2k_mercury.jpg");
+	planet_textures[1] = loadTexture("2k_venus_atmosphere.jpg");
+	planet_textures[2] = loadTexture("2k_earth_daymap.jpg");
+	planet_textures[3] = loadTexture("2k_mars.jpg");
+	planet_textures[4] = loadTexture("2k_jupiter.jpg");
+	planet_textures[5] = loadTexture("2k_saturn.jpg");
+	planet_textures[6] = loadTexture("2k_uranus.jpg");
+	planet_textures[7] = loadTexture("2k_neptune.jpg");
+
+
+	//planetTexture = loadTexture("2k_earth_daymap.jpg");
 	//menuButtonTex = loadTexture("Menu.png");
 
+
+	//Stars to draw
 	stars.push_back(sun);
+
+	//Planets to draw
+	planets.push_back(mercury);
+	planets.push_back(venus);
+	planets.push_back(earth);
+	planets.push_back(mars);
+	planets.push_back(jupyter);
+	planets.push_back(saturn);
+	planets.push_back(uranus);
+	planets.push_back(neptune);
 
 }
 
@@ -342,7 +375,7 @@ void display(GLFWwindow* window, double currentTime)
 	//buttonLoc = glGetUniformLocation(renderingProgram, "button");
 	glProgramUniform1i(renderingProgram, buttonLoc, button);
 
-	stars_copy = stars;
+	//stars_copy = stars;
 	//calculateMotionParameters(stars,stars_copy);
 
 	for (int i = 0; i < stars.size(); i++)
@@ -391,6 +424,55 @@ void display(GLFWwindow* window, double currentTime)
 		stars[i].stackVariable.pop();
 		//}
 	}
+
+
+
+	//Planets
+
+
+	for (int i = 0; i < planets.size(); ++i)
+	{
+		stars[0].stackVariable.push(stars[0].stackVariable.top());
+		stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) *planets[i].getAngularSpeed()) * planets[i].getDistance() * zoomFeature,
+			0.0f, cos(float(currentTime) * planets[i].getAngularSpeed()) * planets[i].getDistance() * zoomFeature));
+		stars[0].stackVariable.push(stars[0].stackVariable.top());
+		stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
+		stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature *planets[i].getScale(), zoomFeature * planets[i].getScale(), zoomFeature * planets[i].getScale()));
+
+		//L
+		invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
+
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
+		//L
+		glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+		//L
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(2);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, planet_textures[i]);
+
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+
+		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
+		stars[0].stackVariable.pop();
+
+	}
+
+
 
 
 

@@ -37,7 +37,35 @@ public:
 	glm::vec3 accelerationVec();
 	glm::vec3 velocityVec();
 	
-};
+}; 
 
 
-#endif
+class Planet
+{
+private:
+
+	float scale;
+	float angularSpeed;
+	float distance;
+
+
+public:
+	stack<glm::mat4> stackVariable;
+
+	
+	
+
+
+	Planet(int scale_, float angularSpeed_, float distance_ );
+	const float getScale();
+	const float getAngularSpeed();
+	const float getDistance();
+	glm::vec3 scaleVec();
+
+	
+
+	
+}; 
+
+
+#endif 
