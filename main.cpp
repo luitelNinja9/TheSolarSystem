@@ -11,6 +11,7 @@
 #include<iostream>
 #include<vector>
 #include "Stars.h"
+#include "ImportedModel.h"
 //#include "Gravity.h"
 
 
@@ -24,6 +25,8 @@ std::vector<Planet>planets;
 
 
 Star sun = Star(3, 0.3f, "8k_sun.jpg", glm::vec3(0.0f, 0.0f, 0.0f));
+ImportedModel spaceShip("spaceShip.obj");
+
 Planet mercury = Planet(4, 1.2f, 4.2f, 3.0f,0.8f);
 Planet venus = Planet(4, 1.3f, 5.7f, 4.0f,0.7f);
 Planet earth = Planet(5, 1.4f, 6.9f, 5.0f,0.6f);
@@ -40,7 +43,7 @@ void installLights(glm::mat4 vMatrix);
 
 
 #define numVAOs 1
-#define numVBOs 5
+#define numVBOs 8
 //using namespace std;
 
 
@@ -69,7 +72,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 //Variable used in display
-GLuint mvLoc, projLoc,vLoc, sunTexture, moonTexture, earthTexture,menuButtonTex,skyBackgroundTexture;
+GLuint mvLoc, projLoc,vLoc, sunTexture, moonTexture, earthTexture,menuButtonTex,skyBackgroundTexture, spaceShipTexture;
 GLuint planetTexture;
 
 int width, height;
@@ -178,13 +181,22 @@ void setupVertices(void)
 	std::vector<glm::vec3> norm = mySphere.getNormals();
 
 
-
+	//SpaceShip
+	std::vector<glm::vec3> vert1 = spaceShip.getVertices();
+	std::vector<glm::vec2> tex1 = spaceShip.getTextureCoords();
+	std::vector<glm::vec3> norm1 = spaceShip.getNormals();
 
 	std::vector<float>pvalues;
 	std::vector<float>tvalues;
 	std::vector<float>nvalues;
 
+	//SpaceShip
+	std::vector<float>pvalues1;
+	std::vector<float>tvalues1;
+	std::vector<float>nvalues1;
+
 	int numIndices = mySphere.getNumIndices();
+	int numIndices1 = spaceShip.getNumVertices();
 
 	for (int i = 0; i < numIndices; i++)
 	{
@@ -198,6 +210,20 @@ void setupVertices(void)
 		nvalues.push_back((norm[ind[i]]).x);
 		nvalues.push_back((norm[ind[i]]).y);
 		nvalues.push_back((norm[ind[i]]).z);
+	}
+
+	for (int i = 0; i < numIndices1; i++)
+	{
+		pvalues1.push_back((vert1[i]).x);
+		pvalues1.push_back((vert1[i]).y);
+		pvalues1.push_back((vert1[i]).z);
+
+		tvalues1.push_back((tex1[i]).s);
+		tvalues1.push_back((tex1[i]).t);
+
+		nvalues1.push_back((norm1[i]).x);
+		nvalues1.push_back((norm1[i]).y);
+		nvalues1.push_back((norm1[i]).z);
 	}
 
 
@@ -227,6 +253,19 @@ void setupVertices(void)
 	//cube Texture
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeTextureCoord) , cubeTextureCoord, GL_STATIC_DRAW);
+
+
+	//SpaceShip vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+	glBufferData(GL_ARRAY_BUFFER, pvalues1.size() * 4, &pvalues1[0], GL_STATIC_DRAW);
+
+	//tex Coordinates
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
+	glBufferData(GL_ARRAY_BUFFER, tvalues1.size() * 4, &tvalues1[0], GL_STATIC_DRAW);
+
+	//normal
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[7]);
+	glBufferData(GL_ARRAY_BUFFER, nvalues1.size() * 4, &nvalues1[0], GL_STATIC_DRAW);
 }
 
 //Step 4 : Init(Definition)  :: Application Specific initialization
@@ -262,6 +301,8 @@ void init(GLFWwindow* window)
 	skyBackgroundTexture = loadTexture("textures/8k_stars_milky_way.jpg");
 	// folder containing the skybox textures
 	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	spaceShipTexture = loadTexture("textures/spstob_1.bmp");
 
 
 	//planetTexture = loadTexture("2k_earth_daymap.jpg");
@@ -495,9 +536,46 @@ void display(GLFWwindow* window, double currentTime)
 	float r = 0.9f;
 
 	///*
-	for (int i = 0; i < planets.size(); ++i)
+	for (int i = 0; i < planets.size() + 1; ++i)
 	{
+		if (i == planets.size())
+		{
+			stars[0].stackVariable.push(stars[0].stackVariable.top());
+			stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * 0.2) * 2.0f * 15.0f * zoomFeature,
+				0.0f, cos(float(currentTime) * 0.2) * 2.0f * 15.0f * zoomFeature));
+			stars[0].stackVariable.push(stars[0].stackVariable.top());
+			stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * 0.1f, glm::vec3(0.0f, 1.0f, 0.0f));
+			stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * 0.5, zoomFeature * 0.5, zoomFeature * 0.5));
 
+			//L
+			//invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
+
+			glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
+			//L
+			//glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+
+			glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(0);
+
+			glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(1);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, spaceShipTexture);
+
+			glEnable(GL_CULL_FACE);
+			glFrontFace(GL_CCW);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LEQUAL);
+
+			glDrawArrays(GL_TRIANGLES, 0, spaceShip.getNumVertices());
+			//glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		else
+		{
 		stars[0].stackVariable.push(stars[0].stackVariable.top());
 		stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance1() * zoomFeature,
 			0.0f, cos(float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance2() * zoomFeature));
@@ -534,11 +612,32 @@ void display(GLFWwindow* window, double currentTime)
 		glDepthFunc(GL_LEQUAL);
 
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
+	}
+
+
 		stars[0].stackVariable.pop();
 		stars[0].stackVariable.pop();
 		r = r - 0.1f;
+
+
 	}
 	//*/
+
+	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+	//mMat = glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, -1.5f, 1.5f));
+	//mMat *= glm::rotate(glm::mat4(1.0f), (60 * 3.1415f) / 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	//mMat *= glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+
+	//mvMat = vMat * mMat;
+
+
+
+
+
+
+
+
+
 
 
 	/*
@@ -629,7 +728,6 @@ void display(GLFWwindow* window, double currentTime)
 
 	//button = normalView;
 	//glProgramUniform1i(renderingProgram, buttonLoc, button);
-
 
 
 

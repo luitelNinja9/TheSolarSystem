@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Gravity.cpp" />
+    <ClCompile Include="ImportedModel.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Stars.cpp" />
@@ -153,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gravity.h" />
+    <ClInclude Include="ImportedModel.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Stars.h" />
     <ClInclude Include="Utils.h" />
