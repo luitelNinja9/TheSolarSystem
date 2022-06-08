@@ -65,7 +65,7 @@ glm::vec3 Star::scaleVec()
 }
 
 
-Planet::Planet(int scale_= 1, float angularSpeed_=1.0f,float distance_ = 0.0f)
+Planet::Planet(int scale_= 1, float angularSpeed_=1.0f,float distance1_ = 0.0f, float distance2_ = 0.0f,float revolution_ = 0.1f)
 {
 	if (scale_ >= 1.0f && scale_ <= 10.0f)
 	{
@@ -80,7 +80,9 @@ Planet::Planet(int scale_= 1, float angularSpeed_=1.0f,float distance_ = 0.0f)
 	Planet::scale = scale / 5.0f;
 
 	Planet::angularSpeed = angularSpeed_;
-	Planet::distance = distance_;
+	Planet::revolutionSpeed = revolution_;
+	Planet::distance1 = distance1_;
+	Planet::distance2 = distance2_;
 }
 
 
@@ -94,14 +96,23 @@ const float Planet::getAngularSpeed()
 	return angularSpeed;
 }
 
+const float Planet::getRevolutionSpeed()
+{
+	return revolutionSpeed;
+}
+
 
 glm::vec3 Planet::scaleVec()
 {
 	return glm::vec3(scale,scale,scale);
 }
-const float Planet::getDistance()
+const float Planet::getDistance1()
 {
-	return Planet::distance;
+	return Planet::distance1;
+}
+const float Planet::getDistance2()
+{
+	return Planet::distance2;
 }
 
 

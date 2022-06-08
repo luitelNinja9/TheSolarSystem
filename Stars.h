@@ -46,7 +46,11 @@ private:
 
 	float scale;
 	float angularSpeed;
-	float distance;
+	float revolutionSpeed;
+
+	//a and b for ellipse
+	float distance1;
+	float distance2;
 
 
 public:
@@ -56,10 +60,12 @@ public:
 	
 
 
-	Planet(int scale_, float angularSpeed_, float distance_ );
+	Planet(int scale_, float angularSpeed_, float distance1_, float distance2_,float revolution_ );
 	const float getScale();
 	const float getAngularSpeed();
-	const float getDistance();
+	const float getRevolutionSpeed();
+	const float getDistance1();
+	const float getDistance2();
 	glm::vec3 scaleVec();
 
 	

@@ -24,14 +24,14 @@ std::vector<Planet>planets;
 
 
 Star sun = Star(3, 0.3f, "8k_sun.jpg", glm::vec3(0.0f, 0.0f, 0.0f));
-Planet mercury = Planet(4, 0.2f, 2.0f);
-Planet venus = Planet(3, 0.2f, 2.5f);
-Planet earth = Planet(5, 0.2f, 3.5f);
-Planet mars = Planet(3, 0.2f, 5.0f);
-Planet jupyter = Planet(10, 0.2f, 7.0f);
-Planet saturn = Planet(8, 0.2f, 8.5f);
-Planet uranus = Planet(7, 0.2f, 9.8f);
-Planet neptune = Planet(6, 0.2f, 11.0f);
+Planet mercury = Planet(4, 1.2f, 4.2f, 3.0f,0.8f);
+Planet venus = Planet(4, 1.3f, 5.7f, 4.0f,0.7f);
+Planet earth = Planet(5, 1.4f, 6.9f, 5.0f,0.6f);
+Planet mars = Planet(3, 1.5f, 7.9f, 6.0f,0.5f);
+Planet jupyter = Planet(10, 1.5f, 9.5f, 9.0f,0.4f);
+Planet saturn = Planet(8, 1.5f, 11.7f, 10.5f,0.3f);
+Planet uranus = Planet(7, 1.6f, 12.5f, 11.8f,0.2f);
+Planet neptune = Planet(6, 1.7f, 13.5f, 13.0f,0.1f);
 
 GLuint planet_textures[8];
 
@@ -61,7 +61,7 @@ int onHoverView = 2;
 float cameraX, cameraY, cameraZ;
 Sphere mySphere(48);
 
-GLuint renderingProgram;
+GLuint renderingProgram,backgroundProgram;
 //GLuint renderingProgramUI;
 
 
@@ -234,18 +234,18 @@ void init(GLFWwindow* window)
 	cameraX = 0.0f; cameraY = -0.5f; cameraZ = 8.0f;
 	setupVertices();
 
-	sunTexture = loadTexture("8k_sun.jpg");
-	moonTexture = loadTexture("8k_moon.jpg");
+	sunTexture = loadTexture("textures/8k_sun.jpg");
+	moonTexture = loadTexture("textures/8k_moon.jpg");
 	earthTexture = loadTexture("2k_earth_daymap.jpg");
 
-	planet_textures[0] = loadTexture("2k_mercury.jpg");
-	planet_textures[1] = loadTexture("2k_venus_atmosphere.jpg");
-	planet_textures[2] = loadTexture("2k_earth_daymap.jpg");
-	planet_textures[3] = loadTexture("2k_mars.jpg");
-	planet_textures[4] = loadTexture("2k_jupiter.jpg");
-	planet_textures[5] = loadTexture("2k_saturn.jpg");
-	planet_textures[6] = loadTexture("2k_uranus.jpg");
-	planet_textures[7] = loadTexture("2k_neptune.jpg");
+	planet_textures[0] = loadTexture("textures/2k_mercury.jpg");
+	planet_textures[1] = loadTexture("textures/2k_venus_atmosphere.jpg");
+	planet_textures[2] = loadTexture("textures/2k_earth_daymap.jpg");
+	planet_textures[3] = loadTexture("textures/2k_mars.jpg");
+	planet_textures[4] = loadTexture("textures/2k_jupiter.jpg");
+	planet_textures[5] = loadTexture("textures/2k_saturn.jpg");
+	planet_textures[6] = loadTexture("textures/2k_uranus.jpg");
+	planet_textures[7] = loadTexture("textures/2k_neptune.jpg");
 
 
 	//planetTexture = loadTexture("2k_earth_daymap.jpg");
@@ -428,15 +428,16 @@ void display(GLFWwindow* window, double currentTime)
 
 
 	//Planets
-
+	float r = 0.9f;
 
 	for (int i = 0; i < planets.size(); ++i)
 	{
+		 
 		stars[0].stackVariable.push(stars[0].stackVariable.top());
-		stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) *planets[i].getAngularSpeed()) * planets[i].getDistance() * zoomFeature,
-			0.0f, cos(float(currentTime) * planets[i].getAngularSpeed()) * planets[i].getDistance() * zoomFeature));
+		stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * planets[i].getRevolutionSpeed()) *2.0f* planets[i].getDistance1() * zoomFeature,
+			0.0f,cos(float(currentTime)* planets[i].getRevolutionSpeed()) *2.0f* planets[i].getDistance2() * zoomFeature));
 		stars[0].stackVariable.push(stars[0].stackVariable.top());
-		stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime), glm::vec3(0.0f, 1.0f, 0.0f));
+		stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime)* planets[i].getAngularSpeed(), glm::vec3(0.0f, 1.0f, 0.0f));
 		stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature *planets[i].getScale(), zoomFeature * planets[i].getScale(), zoomFeature * planets[i].getScale()));
 
 		//L
@@ -469,11 +470,13 @@ void display(GLFWwindow* window, double currentTime)
 
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 		stars[0].stackVariable.pop();
-
+		stars[0].stackVariable.pop();
+		r = r -0.1f;
 	}
 
 
 
+	/*
 
 
 
@@ -550,7 +553,7 @@ void display(GLFWwindow* window, double currentTime)
 
 	glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 	stars[0].stackVariable.pop();	stars[0].stackVariable.pop();	stars[0].stackVariable.pop();	stars[0].stackVariable.pop();
-
+	*/
 	for (int i = 1; i < stars.size(); ++i)
 	{
 		stars[i].stackVariable.pop();
@@ -559,8 +562,8 @@ void display(GLFWwindow* window, double currentTime)
 
 
 
-	button = normalView;
-	glProgramUniform1i(renderingProgram, buttonLoc, button);
+	//button = normalView;
+	//glProgramUniform1i(renderingProgram, buttonLoc, button);
 
 
 
