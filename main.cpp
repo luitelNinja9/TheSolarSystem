@@ -61,7 +61,7 @@ int onHoverView = 2;
 float cameraX, cameraY, cameraZ;
 Sphere mySphere(48);
 
-GLuint renderingProgram,backgroundProgram;
+int renderingProgram,backgroundProgram;
 //GLuint renderingProgramUI;
 
 
@@ -69,7 +69,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 //Variable used in display
-GLuint mvLoc, projLoc, sunTexture, moonTexture, earthTexture,menuButtonTex;
+GLuint mvLoc, projLoc,vLoc, sunTexture, moonTexture, earthTexture,menuButtonTex,skyBackgroundTexture;
 GLuint planetTexture;
 
 int width, height;
@@ -102,7 +102,7 @@ float previous, now, radius, dt;
 void setupVertices(void)
 {
 	//Uncomment For Adding sample Button
-	/*float cubePositions[108] =
+	float cubePositions[108] =
 	{
 		 -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
 		 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
@@ -117,26 +117,35 @@ void setupVertices(void)
 		 -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
 		  1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
 	};
+	
 
-	float cubeTexPositions[72] =
-	{ 0.0f, 0.25f, 0.25f, 0.25f, 0.25f, 0.75f,
-		0.0f, 0.25f, 0.25f, 0.75f, 0.0f, 0.75f,
-		// front face
-			0.25f, 0.25f, 0.25f, 0.25f, 0.5f, 0.75f,
-				 0.25f, 0.25f, 0.5f, 0.75f, 0.25f, 0.75f,
-		// right face
-		0.5f, 0.25f, 0.75f, 0.25f, 0.75f, 0.75f,
-				 0.5f, 0.25f, 0.75f, 0.75f, 0.5f, 0.75f,
-		// back face
-		0.75f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f,
-				 0.75f, 0.25f, 1.0f, 0.75f, 0.75f, 0.75f,
-		// left face
-		 0.0f, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f,
-		0.0f, 0.25f, 0.25f, 0.75f, 0.0f, 0.75f, // base – right back
-				0.75f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f,
-				 0.75f, 0.25f, 1.0f, 0.75f, 0.75f, 0.75f,
-		// base – right back
-	};
+	float cubeTextureCoord[72] = {
+			 1.00f, 0.66f, 1.00f, 0.33f, 0.75f, 0.33f,
+			 // back face lower right
+			0.75f, 0.33f, 0.75f, 0.66f, 1.00f, 0.66f,
+					// back face upper left
+			0.75f, 0.33f, 0.50f, 0.33f, 0.75f, 0.66f,
+						   // right face lower right
+			0.50f, 0.33f, 0.50f, 0.66f, 0.75f, 0.66f,
+								  // right face upper left
+			0.50f, 0.33f, 0.25f, 0.33f, 0.50f, 0.66f,
+										 // front face lower right
+			0.25f, 0.33f, 0.25f, 0.66f, 0.50f, 0.66f,
+												// front face upper left
+			0.25f, 0.33f, 0.00f, 0.33f, 0.25f, 0.66f,
+													   // left face lower right
+			 0.00f, 0.33f, 0.00f, 0.66f, 0.25f, 0.66f,
+															  // left face upper left
+			0.25f, 0.33f, 0.50f, 0.33f, 0.50f, 0.00f,
+																	 // bottom face upper right
+			0.50f, 0.00f, 0.25f, 0.00f, 0.25f, 0.33f,
+																			// bottom face lower left
+		 0.25f, 1.00f, 0.50f, 1.00f, 0.50f, 0.66f,
+																				   // top face upper right
+		0.50f, 0.66f, 0.25f, 0.66f, 0.25f, 1.00f
+																						  // top face lower left
+};
+/*
 	float menuButton[72] =
 	{
 		//0.0f,0.0f,0.0f,1.0f,1.0f,1.0f,
@@ -212,12 +221,12 @@ void setupVertices(void)
 
 	//Uncomment for sample Button
 	//cube
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(cubePositions) , cubePositions, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubePositions) , cubePositions, GL_STATIC_DRAW);
 
 	//cube Texture
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(menuButton) , menuButton, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeTextureCoord) , cubeTextureCoord, GL_STATIC_DRAW);
 }
 
 //Step 4 : Init(Definition)  :: Application Specific initialization
@@ -230,13 +239,15 @@ void init(GLFWwindow* window)
 {
 	//Create thr program and save it in a global variable
 	renderingProgram = createShaderProgram("vertShader.glsl", "fragShader.glsl");
+	backgroundProgram = createShaderProgram("vertShaderBackground.glsl", "fragShaderBackground.glsl");
+
 	//renderingProgramUI = createShaderProgram("vertShaderB.glsl", "fragShaderB.glsl");
 	cameraX = 0.0f; cameraY = -0.5f; cameraZ = 8.0f;
 	setupVertices();
 
 	sunTexture = loadTexture("textures/8k_sun.jpg");
 	moonTexture = loadTexture("textures/8k_moon.jpg");
-	earthTexture = loadTexture("2k_earth_daymap.jpg");
+	earthTexture = loadTexture("textures/2k_earth_daymap.jpg");
 
 	planet_textures[0] = loadTexture("textures/2k_mercury.jpg");
 	planet_textures[1] = loadTexture("textures/2k_venus_atmosphere.jpg");
@@ -246,6 +257,11 @@ void init(GLFWwindow* window)
 	planet_textures[5] = loadTexture("textures/2k_saturn.jpg");
 	planet_textures[6] = loadTexture("textures/2k_uranus.jpg");
 	planet_textures[7] = loadTexture("textures/2k_neptune.jpg");
+
+	//skyBackgroundTexture = loadCubeMap("textures/2k_stars_milky_way");
+	skyBackgroundTexture = loadTexture("textures/8k_stars_milky_way.jpg");
+	// folder containing the skybox textures
+	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 
 	//planetTexture = loadTexture("2k_earth_daymap.jpg");
@@ -276,49 +292,97 @@ void display(GLFWwindow* window, double currentTime)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	//Loads the program containing two compiled shaders into OpenGL pipeline stages(GPU)
-	glUseProgram(renderingProgram);
-
-
 	//Send data from OpenGl application to uniform variable
-	//1.Acquire a reference to  uniform variable
-	GLuint mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
-	GLuint projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+//1.Acquire a reference to  uniform variable
+	
 
-	//L
-	GLuint nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
-
-
+	glUseProgram(backgroundProgram);
+	mvLoc = glGetUniformLocation(backgroundProgram, "mv_matrix");
+	projLoc = glGetUniformLocation(backgroundProgram, "proj_matrix");
 
 
+	//
+	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cameraX, cameraY, cameraZ));
+	// build the MODEL-VIEW matrix
+	mvMat = vMat * mMat;
 
-	//Build Perspective matrix
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = float(width) / float(height);
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);//1.0472f = 60 degrees
+
+
+	
+
+
+	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+
+
+	// make the cube map the active texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, skyBackgroundTexture);
+	// disable depth testing, and then draw the cube map
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+
+	
+	glDisable(GL_DEPTH_TEST);
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glEnable(GL_DEPTH_TEST);
+
+	
+	//Loads the program containing two compiled shaders into OpenGL pipeline stages(GPU)
+
+
+
+
+	glUseProgram(renderingProgram);
+
+
+	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
+	GLuint nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
+
+	//Build Perspective matrix
+	//glfwGetFramebufferSize(window, &width, &height);
+	//aspect = float(width) / float(height);
+	//pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);//1.0472f = 60 degrees
+	//glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
 	//Build view,model and model-view matrix
 	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, cameraZ - 2.00f));
 	//vMat *= glm::translate(glm::mat4(1.0f), glm::vec3(cameraX +1.8f,cameraY +1.0f, cameraZ-2.00f));
 
 
-	oMat = glm::ortho(0.0f, 1920.0f, 0.0f, 1080.0f);
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(oMat));
+	//oMat = glm::ortho(0.0f, 1920.0f, 0.0f, 1080.0f);
+	//glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(oMat));
 
 	//delete
 	//vMat = glm::ortho(0.0f, 1920.0f, 0.0f, 1080.0f,0.0f,100.0f);
 
-	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(1742.50f,1080.0f-55.0f, 0.0f));
-	vMat *= glm::scale(glm::mat4(1.0f), glm::vec3(137.50f, 30.0f, 1.0f));
+	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(1742.50f,1080.0f-55.0f, 0.0f));
+	//vMat *= glm::scale(glm::mat4(1.0f), glm::vec3(137.50f, 30.0f, 1.0f));
 	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(1.7f, 1.05f, -2.0f));
 	//vMat *= glm::scale(glm::mat4(1.0f), glm::vec3(0.3f, 0.065f, 0.03f));
 
-	invTrMat = glm::transpose(glm::inverse(vMat));
+	//invTrMat = glm::transpose(glm::inverse(vMat));
 
-	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(vMat));
+	//glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(vMat));
 	//L
-	glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+	//glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
 
 
@@ -358,8 +422,8 @@ void display(GLFWwindow* window, double currentTime)
 
 
 	//Build view,model and model-view matrix
-	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-	
+	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+
 
 	//L
 	//Light Position
@@ -371,19 +435,19 @@ void display(GLFWwindow* window, double currentTime)
 	//sun.stackVariable
 	//calculateMotionParameters();
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-	button = 0;
+	//button = 0;
 	//buttonLoc = glGetUniformLocation(renderingProgram, "button");
-	glProgramUniform1i(renderingProgram, buttonLoc, button);
+	//glProgramUniform1i(renderingProgram, buttonLoc, button);
 
 	//stars_copy = stars;
 	//calculateMotionParameters(stars,stars_copy);
 
 	for (int i = 0; i < stars.size(); i++)
 	{//The sun
-		
+
 		stars[i].stackVariable.push(vMat);
 		stars[i].stackVariable.push(stars[i].stackVariable.top());
-		stars[i].stackVariable.top() *= glm::translate(glm::mat4(1.0f), stars[i].positionVec()*zoomFeature);
+		stars[i].stackVariable.top() *= glm::translate(glm::mat4(1.0f), stars[i].positionVec() * zoomFeature);
 		stars[i].stackVariable.push(stars[i].stackVariable.top());
 		stars[i].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * stars[i].getAngularSpeed(), glm::vec3(0.0f, 1.0f, 0.0f));
 		//mvStack.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature*2.0f, zoomFeature * 2.0f, zoomFeature * 2.0f));
@@ -430,15 +494,16 @@ void display(GLFWwindow* window, double currentTime)
 	//Planets
 	float r = 0.9f;
 
+	///*
 	for (int i = 0; i < planets.size(); ++i)
 	{
-		 
+
 		stars[0].stackVariable.push(stars[0].stackVariable.top());
-		stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * planets[i].getRevolutionSpeed()) *2.0f* planets[i].getDistance1() * zoomFeature,
-			0.0f,cos(float(currentTime)* planets[i].getRevolutionSpeed()) *2.0f* planets[i].getDistance2() * zoomFeature));
+		stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance1() * zoomFeature,
+			0.0f, cos(float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance2() * zoomFeature));
 		stars[0].stackVariable.push(stars[0].stackVariable.top());
-		stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime)* planets[i].getAngularSpeed(), glm::vec3(0.0f, 1.0f, 0.0f));
-		stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature *planets[i].getScale(), zoomFeature * planets[i].getScale(), zoomFeature * planets[i].getScale()));
+		stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * planets[i].getAngularSpeed(), glm::vec3(0.0f, 1.0f, 0.0f));
+		stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * planets[i].getScale(), zoomFeature * planets[i].getScale(), zoomFeature * planets[i].getScale()));
 
 		//L
 		invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
@@ -471,9 +536,9 @@ void display(GLFWwindow* window, double currentTime)
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 		stars[0].stackVariable.pop();
 		stars[0].stackVariable.pop();
-		r = r -0.1f;
+		r = r - 0.1f;
 	}
-
+	//*/
 
 
 	/*
@@ -533,7 +598,7 @@ void display(GLFWwindow* window, double currentTime)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
-	 
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
@@ -566,6 +631,10 @@ void display(GLFWwindow* window, double currentTime)
 	//glProgramUniform1i(renderingProgram, buttonLoc, button);
 
 
+
+
+	
+	
 
 
 

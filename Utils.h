@@ -13,7 +13,7 @@ GLuint createShaderProgram();
 GLuint createShaderProgram(const char* vsPath, const char* fsPath);
 void printShaderLog(GLuint shader);
 GLuint loadTexture(const char* texImagePath);
-
+GLuint loadCubeMap(const char* mapDir);
 
 
 

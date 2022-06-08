@@ -158,11 +158,12 @@
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="fragShaderBackground.glsl" />
     <None Include="fragShader.glsl" />
     <None Include="vertShader.glsl" />
+    <None Include="vertShaderBackground.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="2k_earth_daymap.jpg" />
     <Image Include="2k_jupiter.jpg" />
     <Image Include="2k_mars.jpg" />
     <Image Include="2k_mercury.jpg" />
@@ -175,8 +176,11 @@
     <Image Include="8k_moon.jpg" />
     <Image Include="8k_sun.jpg" />
     <Image Include="Menu.png" />
+    <Image Include="textures\2k_stars_milky_way.jpg" />
+    <Image Include="textures\8k_stars_milky_way.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="nothing.txt" />
     <Text Include="test.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

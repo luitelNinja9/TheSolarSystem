@@ -52,11 +52,14 @@
     <None Include="fragShader.glsl">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="vertShaderBackground.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="fragShaderBackground.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="2k_earth_daymap.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="8k_moon.jpg">
       <Filter>Resource Files</Filter>
     </Image>
@@ -93,9 +96,18 @@
     <Image Include="2k_venus_atmosphere.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="textures\2k_stars_milky_way.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\8k_stars_milky_way.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Text Include="test.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="nothing.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
