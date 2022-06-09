@@ -22,6 +22,7 @@ Star::Star(int scale_=1, float angularSpeed_=1.0f,const char* texString_="8k_sun
 	Star::mass = pow(scale,3);
 	Star::velocity = velocity_;
 	Star::acceleration = glm::vec3(0.0f,0.0f,0.0f);
+
 }
 
 
@@ -65,7 +66,7 @@ glm::vec3 Star::scaleVec()
 }
 
 
-Planet::Planet(int scale_= 1, float angularSpeed_=1.0f,float distance1_ = 0.0f, float distance2_ = 0.0f,float revolution_ = 0.1f)
+Planet::Planet(int scale_, float angularSpeed_,float distance1_ , float distance2_ ,float revolution_, vector <Sattelite> sats_,int sattelite_)
 {
 	if (scale_ >= 1.0f && scale_ <= 10.0f)
 	{
@@ -83,6 +84,8 @@ Planet::Planet(int scale_= 1, float angularSpeed_=1.0f,float distance1_ = 0.0f, 
 	Planet::revolutionSpeed = revolution_;
 	Planet::distance1 = distance1_;
 	Planet::distance2 = distance2_;
+	Planet::sattelite = sattelite_;
+	sats = sats_;
 }
 
 
@@ -114,5 +117,60 @@ const float Planet::getDistance2()
 {
 	return Planet::distance2;
 }
+const int Planet::withSattelite()
+{
+	return Planet::sattelite;
+}
 
 
+Sattelite::Sattelite(int scale_ = 1, float angularSpeed_ = 1.0f, float distance1_ = 0.0f, float distance2_ = 0.0f, float revolution_ = 0.1f)
+{
+	if (scale_ >= 1.0f && scale_ <= 10.0f)
+	{
+		scale = float(scale_) / 2.0f;
+	}
+	else
+	{
+		scale = float(scale_);
+	}
+
+
+	scale = scale / 10.0f;
+
+	angularSpeed = angularSpeed_;
+	revolutionSpeed = revolution_;
+	distance1 = distance1_;
+	distance2 = distance2_;
+	
+	
+}
+
+
+const float Sattelite::getScale()
+{
+	return scale;
+}
+
+const float Sattelite::getAngularSpeed()
+{
+	return angularSpeed;
+}
+
+const float Sattelite::getRevolutionSpeed()
+{
+	return revolutionSpeed;
+}
+
+
+glm::vec3 Sattelite::scaleVec()
+{
+	return glm::vec3(scale, scale, scale);
+}
+const float Sattelite::getDistance1()
+{
+	return Sattelite::distance1;
+}
+const float Sattelite::getDistance2()
+{
+	return Sattelite::distance2;
+}

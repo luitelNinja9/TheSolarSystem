@@ -2,6 +2,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<stack>
+#include<vector>
 
 #ifndef STARS
 #define STARS
@@ -38,6 +39,32 @@ public:
 	glm::vec3 velocityVec();
 	
 }; 
+class Sattelite
+{
+private:
+
+	float scale;
+	float angularSpeed;
+	float revolutionSpeed;
+
+	//a and b for ellipse
+	float distance1;
+	float distance2;
+
+
+
+public:
+	stack<glm::mat4> stackVariable;
+
+
+	Sattelite(int scale_, float angularSpeed_, float distance1_, float distance2_, float revolution_);
+	const float getScale();
+	const float getAngularSpeed();
+	const float getRevolutionSpeed();
+	const float getDistance1();
+	const float getDistance2();
+	glm::vec3 scaleVec();
+};
 
 
 class Planet
@@ -51,27 +78,25 @@ private:
 	//a and b for ellipse
 	float distance1;
 	float distance2;
+	int sattelite;
 
 
 public:
 	stack<glm::mat4> stackVariable;
-
-	
-	
+	vector<Sattelite> sats;
 
 
-	Planet(int scale_, float angularSpeed_, float distance1_, float distance2_,float revolution_ );
+	Planet(int scale_, float angularSpeed_, float distance1_, float distance2_, float revolution_,vector <Sattelite> sats_,
+		int Sattelite = 0);
 	const float getScale();
 	const float getAngularSpeed();
 	const float getRevolutionSpeed();
 	const float getDistance1();
 	const float getDistance2();
+	const int withSattelite();
 	glm::vec3 scaleVec();
-
-	
-
-	
 }; 
+
 
 
 #endif 
