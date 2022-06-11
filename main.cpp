@@ -14,6 +14,7 @@
 #include "ImportedModel.h"
 //#include "Gravity.h"
 
+float all_velocity = 1.0f;
 
 float zoomFeature = 1;
 float zoomSensitivity = 0.1f;
@@ -32,25 +33,26 @@ vector<Sattelite> moons = { Sattelite(3,5.0f,0.5f,0.5f,3.0f) };
 
 
 
-Planet mercury = Planet(4, 1.2f, 4.2f, 3.0f,0.8f,dummy);
-Planet venus = Planet(4, 1.3f, 5.7f, 4.0f,0.7f,dummy);
-Planet earth = Planet(5, 1.4f, 6.9f, 5.0f,0.6f,moons,1);
-Planet mars = Planet(3, 1.5f, 7.9f, 6.0f,0.5f,dummy);
-Planet jupyter = Planet(10, 1.5f, 9.5f, 9.0f,0.4f,dummy);
-Planet saturn = Planet(8, 1.5f, 11.7f, 10.5f,0.3f,dummy);
-Planet uranus = Planet(7, 1.6f, 12.5f, 11.8f,0.2f,dummy);
-Planet neptune = Planet(6, 1.7f, 13.5f, 13.0f,0.1f,dummy);
+Planet mercury = Planet(4, 1.2f, 4.2f, 3.0f,0.8f* all_velocity,dummy);
+Planet venus = Planet(4, 1.3f, 5.7f, 4.0f,0.7f* all_velocity,dummy);
+Planet earth = Planet(5, 1.4f, 6.9f, 5.0f,0.6f * all_velocity,moons,1);
+Planet mars = Planet(3, 1.5f, 7.9f, 6.0f,0.5f * all_velocity,dummy);
+Planet jupyter = Planet(10, 1.5f, 9.5f, 9.0f ,0.4f * all_velocity,dummy);
+Planet saturn = Planet(8, 1.5f, 11.7f, 10.5f ,0.3f * all_velocity,dummy);
+Planet uranus = Planet(7, 1.6f, 12.5f, 11.8f ,0.2f *all_velocity,dummy);
+Planet neptune = Planet(6, 1.7f, 13.5f, 13.0f,0.1f * all_velocity,dummy);
 
 
 
 GLuint planet_textures[8];
+GLuint planet_textures_normal[8];
 
 
 void installLights(glm::mat4 vMatrix);
 
 
 #define numVAOs 1
-#define numVBOs 8
+#define numVBOs 9
 //using namespace std;
 
 
@@ -69,7 +71,7 @@ int onHoverView = 2;
 
 
 float cameraX, cameraY, cameraZ;
-Sphere mySphere(48);
+Sphere mySphere(200);
 
 int renderingProgram,backgroundProgram;
 //GLuint renderingProgramUI;
@@ -79,11 +81,11 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 //Variable used in display
-GLuint mvLoc, projLoc,vLoc, sunTexture, moonTexture, earthTexture,menuButtonTex,skyBackgroundTexture, spaceShipTexture;
+GLuint mvLoc, projLoc,vLoc, sunTexture, moonTexture, earthNormalTexture,menuButtonTex,skyBackgroundTexture, spaceShipTexture;
 GLuint planetTexture;
 
 int width, height;
-int button = 1;
+int button = 0;
 float aspect;
 glm::mat4 pMat, vMat, mMat, mvMat, tMat, rMat,oMat;
 //L
@@ -93,7 +95,7 @@ glm::vec3 currentLightPos,lightPosV;
 //L
 //Location for shader uniform variable
 GLuint globalAmbLoc, ambLoc, diffLoc, specLoc, posLoc, mAmbLoc, mDiffLoc, mSpecLoc, mShiLoc,buttonLoc;
-glm::vec3 initialLightLoc = glm::vec3(0.0f, 0.0f, -0.0f);
+glm::vec3 initialLightLoc = glm::vec3(0.0f, 0.0f, 0.0f);
 float lightPos[3];
 //L
 //sun light properties
@@ -186,6 +188,7 @@ void setupVertices(void)
 	std::vector<glm::vec3> vert = mySphere.getVertices();
 	std::vector<glm::vec2> tex = mySphere.getTexCoords();
 	std::vector<glm::vec3> norm = mySphere.getNormals();
+	std::vector<glm::vec3> tans = mySphere.getTangents();
 
 
 	//SpaceShip
@@ -196,6 +199,7 @@ void setupVertices(void)
 	std::vector<float>pvalues;
 	std::vector<float>tvalues;
 	std::vector<float>nvalues;
+	std::vector<float>tanvalues;
 
 	//SpaceShip
 	std::vector<float>pvalues1;
@@ -217,6 +221,10 @@ void setupVertices(void)
 		nvalues.push_back((norm[ind[i]]).x);
 		nvalues.push_back((norm[ind[i]]).y);
 		nvalues.push_back((norm[ind[i]]).z);
+
+		tanvalues.push_back((tans[ind[i]]).x);
+		tanvalues.push_back((tans[ind[i]]).y);
+		tanvalues.push_back((tans[ind[i]]).z);
 	}
 
 	for (int i = 0; i < numIndices1; i++)
@@ -232,6 +240,8 @@ void setupVertices(void)
 		nvalues1.push_back((norm1[i]).y);
 		nvalues1.push_back((norm1[i]).z);
 	}
+
+
 
 
 
@@ -273,6 +283,10 @@ void setupVertices(void)
 	//normal
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[7]);
 	glBufferData(GL_ARRAY_BUFFER, nvalues1.size() * 4, &nvalues1[0], GL_STATIC_DRAW);
+
+	//Sphere tangent
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[8]);
+	glBufferData(GL_ARRAY_BUFFER, tanvalues.size() * 4, &tanvalues[0], GL_STATIC_DRAW);
 }
 
 //Step 4 : Init(Definition)  :: Application Specific initialization
@@ -284,7 +298,7 @@ void setupVertices(void)
 void init(GLFWwindow* window)
 {
 	//Create thr program and save it in a global variable
-	renderingProgram = createShaderProgram("vertShader.glsl", "fragShader.glsl");
+	renderingProgram = createShaderProgram("vert_phong.glsl", "frag_phong.glsl");
 	backgroundProgram = createShaderProgram("vertShaderBackground.glsl", "fragShaderBackground.glsl");
 
 	//renderingProgramUI = createShaderProgram("vertShaderB.glsl", "fragShaderB.glsl");
@@ -293,7 +307,7 @@ void init(GLFWwindow* window)
 
 	sunTexture = loadTexture("textures/8k_sun.jpg");
 	moonTexture = loadTexture("textures/8k_moon.jpg");
-	//earthTexture = loadTexture("textures/2k_earth_daymap.jpg");
+	earthNormalTexture = loadTexture("textures/8k_earth_normal_map.tif");
 
 	planet_textures[0] = loadTexture("textures/2k_mercury.jpg");
 	planet_textures[1] = loadTexture("textures/2k_venus_atmosphere.jpg");
@@ -303,6 +317,15 @@ void init(GLFWwindow* window)
 	planet_textures[5] = loadTexture("textures/2k_saturn.jpg");
 	planet_textures[6] = loadTexture("textures/2k_uranus.jpg");
 	planet_textures[7] = loadTexture("textures/2k_neptune.jpg");
+
+	planet_textures_normal[0] = loadTexture("textures/2k_mercury_normal.jpg");
+	planet_textures_normal[1] = loadTexture("textures/2k_venus_atmosphere_normal.jpg");
+	planet_textures_normal[2] = loadTexture("textures/2k_earth_daymap_normal.jpg");
+	planet_textures_normal[3] = loadTexture("textures/2k_mars_normal.jpg");
+	planet_textures_normal[4] = loadTexture("textures/2k_jupiter_normal.jpg");
+	planet_textures_normal[5] = loadTexture("textures/2k_saturn_normal.jpg");
+	planet_textures_normal[6] = loadTexture("textures/2k_uranus_normal.jpg");
+	planet_textures_normal[7] = loadTexture("textures/2k_neptune_normal.jpg");
 
 	//skyBackgroundTexture = loadCubeMap("textures/2k_stars_milky_way");
 	skyBackgroundTexture = loadTexture("textures/8k_stars_milky_way.jpg");
@@ -330,6 +353,8 @@ void init(GLFWwindow* window)
 	planets.push_back(neptune);
 
 }
+
+
 
 
 void display(GLFWwindow* window, double currentTime)
@@ -479,7 +504,8 @@ void display(GLFWwindow* window, double currentTime)
 	installLights(vMat);
 
 
-
+	buttonLoc = glGetUniformLocation(renderingProgram, "button");
+	glProgramUniform1i(renderingProgram, buttonLoc, button);
 	//sun.stackVariable
 	//calculateMotionParameters();
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
@@ -522,6 +548,10 @@ void display(GLFWwindow* window, double currentTime)
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(2);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[8]);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(3);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, sunTexture);
@@ -597,6 +627,11 @@ void display(GLFWwindow* window, double currentTime)
 		//L
 		glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
+
+		button = 1;
+		buttonLoc = glGetUniformLocation(renderingProgram, "button");
+		glProgramUniform1i(renderingProgram, buttonLoc, button);
+
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(0);
@@ -610,8 +645,17 @@ void display(GLFWwindow* window, double currentTime)
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(2);
 
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[8]);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(3);
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, planet_textures[i]);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, planet_textures_normal[i]);
+
 
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
@@ -619,6 +663,11 @@ void display(GLFWwindow* window, double currentTime)
 		glDepthFunc(GL_LEQUAL);
 
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
+
+		button = 0;
+		buttonLoc = glGetUniformLocation(renderingProgram, "button");
+		glProgramUniform1i(renderingProgram, buttonLoc, button);
+
 		///*
 		if (planets[i].withSattelite())
 		{
@@ -649,10 +698,16 @@ void display(GLFWwindow* window, double currentTime)
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(1);
 
+
+
 			//L
 			glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
 			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			glEnableVertexAttribArray(2);
+
+			glBindBuffer(GL_ARRAY_BUFFER, vbo[8]);
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(3);
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, moonTexture);

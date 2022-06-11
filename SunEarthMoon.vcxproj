@@ -162,24 +162,10 @@
   <ItemGroup>
     <None Include="fragShaderBackground.glsl" />
     <None Include="fragShader.glsl" />
+    <None Include="frag_phong.glsl" />
     <None Include="vertShader.glsl" />
     <None Include="vertShaderBackground.glsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="2k_jupiter.jpg" />
-    <Image Include="2k_mars.jpg" />
-    <Image Include="2k_mercury.jpg" />
-    <Image Include="2k_neptune.jpg" />
-    <Image Include="2k_saturn.jpg" />
-    <Image Include="2k_uranus.jpg" />
-    <Image Include="2k_venus_atmosphere.jpg" />
-    <Image Include="2k_venus_surface.jpg" />
-    <Image Include="4k_eris_fictional.jpg" />
-    <Image Include="8k_moon.jpg" />
-    <Image Include="8k_sun.jpg" />
-    <Image Include="Menu.png" />
-    <Image Include="textures\2k_stars_milky_way.jpg" />
-    <Image Include="textures\8k_stars_milky_way.jpg" />
+    <None Include="vert_phong.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="nothing.txt" />

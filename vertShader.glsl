@@ -16,6 +16,23 @@ uniform mat4 proj_matrix;
 uniform int x;
 
 layout(binding = 0) uniform sampler2D samp;
+//layout(binding = 1) uniform sampler2D samp1;
+
+
+//vec3 calcNewNormal()
+//{ vec3 normal = normalize(varyingNormal);
+//vec3 tangent = normalize(varyingTangent);
+//tangent = normalize(tangent - dot(tangent, normal) * normal); // tangent is perpendicular to normal
+//vec3 bitangent = cross(tangent, normal);
+//mat3 tbn = mat3(tangent, bitangent, normal);
+ // TBN matrix to convert to camera space
+//vec3 retrievedNormal = texture(normMap,tc).xyz;
+//retrievedNormal = retrievedNormal * 2.0 - 1.0;
+ // convert from RGB space
+//vec3 newNormal = tbn * retrievedNormal;
+//newNormal = normalize(newNormal);
+//return newNormal;
+//}
 
 //vary color
 
@@ -53,7 +70,7 @@ void main(void)
 	// ambient, diffuse, and specular contributions
 	vec3 ambient = ((globalAmbient ) + (light.ambient )).xyz;
 	vec3 diffuse = light.diffuse.xyz  * max(dot(N,L), 0.0);
-	vec3 specular = light.specular.xyz * pow(max(dot(R,V), 0.0f), 5.0f);
+	vec3 specular = light.specular.xyz * pow(max(dot(R,V), 0.0f), 2.0f);
 
 
 	// send the color output to the fragment shader
