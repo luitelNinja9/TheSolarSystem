@@ -148,6 +148,7 @@
     <ClCompile Include="Gravity.cpp" />
     <ClCompile Include="ImportedModel.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main_test.txt" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Stars.cpp" />
     <ClCompile Include="Utils.cpp" />

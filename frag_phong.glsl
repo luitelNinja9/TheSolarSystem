@@ -5,6 +5,7 @@ in vec3 varyingVertPos;
 in vec3 varyingTangent;
 in vec3 originalVertex;
 
+layout (location=2) in vec3 vertNormal;
 
 out vec4 fragColor;
 in vec3 varyingHalfVector;
@@ -75,5 +76,5 @@ vec3 diffuse = light.diffuse.xyz  * max(cosTheta,0.0);
 vec3 specular = light.specular.xyz  * pow(max(cosPhi,0.0), 5.0);
 		 
 //fragColor = textureColor * vec4((ambient + diffuse + specular), 1.0);
-fragColor = (globalAmbient)*0.1 + textureColor * (light.ambient*7.0+ 2.0*light.diffuse*max(cosTheta,0.0)) + 1.1*(light.specular*pow(max(cosPhi,0.0), 2.0));
+fragColor = (globalAmbient)*0.1 + textureColor * (light.ambient*6.0+ 1.5*light.diffuse*max(cosTheta,0.0)) + 1.1*(light.specular*pow(max(cosPhi,0.0), 2.0));
 }
