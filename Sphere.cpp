@@ -25,21 +25,9 @@ void Sphere::init(int prec)
 	for (int i = 0; i < numVertices; i++)
 	{
 		vertices.push_back(glm::vec3());
-	}
-	for (int i = 0; i < numVertices; i++)
-	{
 		texCoords.push_back(glm::vec2());
-	}
-	for (int i = 0; i < numVertices; i++)
-	{
 		normals.push_back(glm::vec3());
-	}
-	for (int i = 0; i < numVertices; i++)
-	{
 		tangents.push_back(glm::vec3());
-	}
-	for (int i = 0; i < numIndices; i++)
-	{
 		indices.push_back(0);
 	}
 	//calculate Triangle verices
