@@ -14,7 +14,7 @@
 #include "ImportedModel.h"
 #include "Torus.h"
 
-float all_velocity = 1.0f;
+float all_velocity = 0.0f;
 
 Torus myTorus_ring(0.5f, 0.145f, 48);
 
@@ -25,6 +25,7 @@ float rotationSensitivity = 0.02f;
 float delta = 0.00f;
 glm::mat4 Rotation = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0, 1, 0));
 
+float dis = 0.0f;
 
 //
 std::vector<Star>stars;
@@ -35,18 +36,20 @@ Star sun = Star(6, 0.3f, "8k_sun.jpg", glm::vec3(0.0f, 0.0f, 0.0f));
 ImportedModel spaceShip("spaceShip.obj");
 
 vector<Sattelite> dummy = { Sattelite(0,0,0,0,0) };
-vector<Sattelite> moons = { Sattelite(3,5.0f,0.5f,0.5f,3.0f) };
+vector<Sattelite> moons = { Sattelite(2,3.0f,0.8f,0.7f,2.0f) };
 
 
 
-Planet mercury = Planet(4, 1.2f, 4.2f, 3.0f, 0.8f * all_velocity, dummy);
-Planet venus = Planet(4, 1.3f, 5.7f, 4.0f, 0.7f * all_velocity, dummy);
-Planet earth = Planet(5, 1.4f, 6.9f, 5.0f, 0.6f * all_velocity, moons, 1);
-Planet mars = Planet(3, 1.5f, 7.9f, 6.0f, 0.5f * all_velocity, dummy);
-Planet jupyter = Planet(10, 1.5f, 9.5f, 9.0f, 0.4f * all_velocity, dummy);
-Planet saturn = Planet(8, 1.5f, 11.7f, 10.5f, 0.3f * all_velocity, dummy);
-Planet uranus = Planet(7, 1.6f, 12.5f, 11.8f, 0.2f * all_velocity, dummy);
-Planet neptune = Planet(6, 1.7f, 13.5f, 13.0f, 0.1f * all_velocity, dummy);
+const float fac = 2;
+
+Planet mercury = Planet(3, 1.2f, 5.0f, 4.0f, 0.8f * all_velocity, dummy);
+Planet venus = Planet(4.5, 1.3f, 6.7f, 6.0f, 0.7f * all_velocity, dummy);
+Planet earth = Planet(5, 1.4f, 8.5f, 8.0f, 0.6f * all_velocity, moons, 1);
+Planet mars = Planet(4, 1.5f, 10.2f, 10.0f, 0.5f * all_velocity, dummy);
+Planet jupyter = Planet(10, 1.5f, 12.5f, 12.0f, 0.4f * all_velocity, dummy);
+Planet saturn = Planet(8, 1.5f, 14.9f, 14.5f, 0.3f * all_velocity, dummy);
+Planet uranus = Planet(7, 1.6f, 17.9f, 17.8f, 0.2f * all_velocity, dummy);
+Planet neptune = Planet(6, 1.7f, 22.4f, 22.0f, 0.1f * all_velocity, dummy);
 
 
 
@@ -427,13 +430,8 @@ void display(GLFWwindow* window, double currentTime)
 	aspect = float(width) / float(height);
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);//1.0472f = 60 degrees
 
-
-
-
-
 	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
@@ -471,7 +469,7 @@ void display(GLFWwindow* window, double currentTime)
 	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
 	GLuint nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
-
+	//GLuint dis = glGetUniformLocation(renderingProgram, "distance");
 	//Build Perspective matrix
 	//glfwGetFramebufferSize(window, &width, &height);
 	//aspect = float(width) / float(height);
@@ -547,8 +545,9 @@ void display(GLFWwindow* window, double currentTime)
 	installLights(vMat);
 
 
-	buttonLoc = glGetUniformLocation(renderingProgram, "button");
-	glProgramUniform1i(renderingProgram, buttonLoc, button);
+	buttonLoc = glGetUniformLocation(renderingProgram, "distance");
+	glProgramUniform1f(renderingProgram, buttonLoc, dis);
+
 	//sun.stackVariable
 	//calculateMotionParameters();
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
@@ -574,9 +573,12 @@ void display(GLFWwindow* window, double currentTime)
 		invTrMat = glm::transpose(glm::inverse(stars[i].stackVariable.top()));
 		glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
-
+		dis = 4.3f;
+		buttonLoc = glGetUniformLocation(renderingProgram, "distance");
+		glProgramUniform1f(renderingProgram, buttonLoc, dis);
 		//Uncomment to see the lower surface
 		//mvStack.top() *= glm::rotate(glm::mat4(1.0f), -0.3f, glm::vec3(1.0f, 0.0f, 0.0f));
+
 
 		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[i].stackVariable.top()));
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -608,17 +610,6 @@ void display(GLFWwindow* window, double currentTime)
 		//glBindTexture(GL_TEXTURE_2D, 0);
 		stars[i].stackVariable.pop();
 
-
-		
-
-
-
-
-
-
-
-
-
 		//}
 	}
 
@@ -632,6 +623,7 @@ void display(GLFWwindow* window, double currentTime)
 	{
 		if (i == planets.size())
 		{
+			///*
 			stars[0].stackVariable.push(stars[0].stackVariable.top());
 			stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * 0.2) * 2.0f * 15.0f * zoomFeature,
 				0.0f, cos(float(currentTime) * 0.2) * 2.0f * 15.0f * zoomFeature));
@@ -645,6 +637,10 @@ void display(GLFWwindow* window, double currentTime)
 			glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
 			//L
 			//glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+			dis = 15.0f;
+			buttonLoc = glGetUniformLocation(renderingProgram, "distance");
+			glProgramUniform1f(renderingProgram, buttonLoc, dis);
 
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
@@ -663,26 +659,11 @@ void display(GLFWwindow* window, double currentTime)
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LEQUAL);
 
-			glDrawArrays(GL_TRIANGLES, 0, spaceShip.getNumVertices());
-
-
-
-
-
-
-
-
-			
-
-
-
-
-
-
-
-
+			//glDrawArrays(GL_TRIANGLES, 0, spaceShip.getNumVertices());
 
 			//glBindTexture(GL_TEXTURE_2D, 0);
+			//*/
+			
 		}
 		else
 		{
@@ -701,9 +682,9 @@ void display(GLFWwindow* window, double currentTime)
 			glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
 
-			button = 1;
-			buttonLoc = glGetUniformLocation(renderingProgram, "button");
-			glProgramUniform1i(renderingProgram, buttonLoc, button);
+			dis = planets[i].getDistance1();
+			buttonLoc = glGetUniformLocation(renderingProgram, "distance");
+			glProgramUniform1f(renderingProgram, buttonLoc, dis);
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -737,25 +718,32 @@ void display(GLFWwindow* window, double currentTime)
 
 			glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 
-			button = 0;
-			buttonLoc = glGetUniformLocation(renderingProgram, "button");
-			glProgramUniform1i(renderingProgram, buttonLoc, button);
+			//button = 0;
+			//buttonLoc = glGetUniformLocation(renderingProgram, "button");
+			//glProgramUniform1i(renderingProgram, buttonLoc, button);
 
-	
+			///*
 			if (i == 5)
 			{
 				stars[0].stackVariable.pop();
-				stars[0].stackVariable.push(stars[0].stackVariable.top());
+				//stars[0].stackVariable.push(stars[0].stackVariable.top());
 				//stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * saturn.getRevolutionSpeed()) * 1.0f * saturn.getDistance1() * zoomFeature,
 				//		0.0f, cos(float(currentTime) * saturn.getRevolutionSpeed()) * 1.0f * saturn.getDistance2() * zoomFeature));
 				stars[0].stackVariable.push(stars[0].stackVariable.top());
-				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(sin(0.3f*currentTime))*1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(sin(0.3f*currentTime))*1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(sin(0.3f*currentTime))*0.6f, glm::vec3(0.0f, 1.0f, 0.0f));
+				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(sin(0.3f*currentTime))*0.6f, glm::vec3(0.0f, 0.0f, 1.0f));
 				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * 3.0f, zoomFeature * 0.5f, zoomFeature *2.7f));
 
 
 				invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
 				glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+
+
+				dis = planets[i].getDistance1();
+				buttonLoc = glGetUniformLocation(renderingProgram, "distance");
+				glProgramUniform1f(renderingProgram, buttonLoc, dis);
+
 
 				glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
 				//glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
@@ -782,7 +770,7 @@ void display(GLFWwindow* window, double currentTime)
 				glDrawElements(GL_TRIANGLES, myTorus_ring.getNumIndices(), GL_UNSIGNED_INT, 0);
 			}
 
-
+			//*/
 
 
 
@@ -804,6 +792,9 @@ void display(GLFWwindow* window, double currentTime)
 				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * planets[i].sats[0].getScale(), zoomFeature * planets[i].sats[0].getScale(), zoomFeature * planets[i].sats[0].getScale()));
 
 
+				dis = planets[i].getDistance1();
+				buttonLoc = glGetUniformLocation(renderingProgram, "distance");
+				glProgramUniform1f(renderingProgram, buttonLoc, dis);
 
 				invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
 				glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
@@ -1045,15 +1036,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 		Rotation = (glm::rotate(glm::mat4(1.0f), delta, glm::vec3(0, 1, 0)));
 	}
+		if (key == GLFW_KEY_Z && (action == GLFW_REPEAT || action == GLFW_PRESS))
+	{
+		delta += rotationSensitivity;
+
+		Rotation = (glm::rotate(glm::mat4(1.0f), delta, glm::vec3(1, 0, 0)));
+	}
 
 	if (key == GLFW_KEY_UP && (action == GLFW_REPEAT || action == GLFW_PRESS)) cameraY += moveSensitivity;
 
 
 
-	if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
+	if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)) 
+	{
 		//cameraY -= moveSensitivity;
 		delta -= rotationSensitivity;
 		Rotation = (glm::rotate(glm::mat4(1.0f), delta, glm::vec3(0, 1, 0)));
+	}
+
+	if (key == GLFW_KEY_C && (action == GLFW_REPEAT || action == GLFW_PRESS)) 
+	{
+		//cameraY -= moveSensitivity;
+		delta -= rotationSensitivity;
+		Rotation = (glm::rotate(glm::mat4(1.0f), delta, glm::vec3(1, 0, 0)));
 	}
 
 	if (key == GLFW_KEY_DOWN && (action == GLFW_REPEAT || action == GLFW_PRESS)) cameraY -= moveSensitivity;

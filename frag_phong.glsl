@@ -26,6 +26,8 @@ uniform mat4 norm_matrix;
 uniform mat4 mv_matrix;
 uniform mat4 proj_matrix;
 uniform int button;
+uniform float distance;
+
 
 layout(binding = 0) uniform sampler2D samp;
 layout(binding = 1) uniform sampler2D sampn;
@@ -70,11 +72,16 @@ float cosTheta = dot(L,N);
 float cosPhi = dot(V,R);
 //float cosPhi = dot(H,N);
 
+float attenDis = 1/(1.0f + 0.3f*distance + 0.3f*distance*distance);
 // compute ADS contributions (per pixel), and combine to build output color:
 vec3 ambient = ((globalAmbient ) + (light.ambient*5.0f )).xyz;
 vec3 diffuse = light.diffuse.xyz  * max(cosTheta,0.0);
 vec3 specular = light.specular.xyz  * pow(max(cosPhi,0.0), 5.0);
 		 
 //fragColor = textureColor * vec4((ambient + diffuse + specular), 1.0);
-fragColor = (globalAmbient)*0.1 + textureColor * (light.ambient*6.0+ 1.5*light.diffuse*max(cosTheta,0.0)) + 1.1*(light.specular*pow(max(cosPhi,0.0), 2.0));
+
+fragColor = (globalAmbient)*0.14f + 
+	textureColor * (light.ambient*(attenDis*15.0f)*6.0+
+	1.5*(light.diffuse*15.0f)*attenDis*max(cosTheta,0.0)) + 
+	1.1*attenDis*10.0f*(light.specular*pow(max(cosPhi,0.0), 2.5));
 }
