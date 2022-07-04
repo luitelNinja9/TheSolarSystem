@@ -34,6 +34,8 @@ std::vector<Planet>planets;
 
 Star sun = Star(6, 0.3f, "8k_sun.jpg", glm::vec3(0.0f, 0.0f, 0.0f));
 ImportedModel spaceShip("spaceShip.obj");
+ImportedModel sat("sattelite.obj");
+//ImportedModel sat("Satellite.obj");
 
 vector<Sattelite> dummy = { Sattelite(0,0,0,0,0) };
 vector<Sattelite> moons = { Sattelite(2,3.0f,0.8f,0.7f,2.0f) };
@@ -61,7 +63,7 @@ void installLights(glm::mat4 vMatrix);
 
 
 #define numVAOs 1
-#define numVBOs 13
+#define numVBOs 16
 //using namespace std;
 
 
@@ -90,7 +92,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 //Variable used in display
-GLuint mvLoc, projLoc, vLoc, sunTexture, moonTexture, earthNormalTexture, menuButtonTex, skyBackgroundTexture, spaceShipTexture,saturnRingTexture;
+GLuint mvLoc, projLoc, vLoc, sunTexture, moonTexture, earthNormalTexture, menuButtonTex, skyBackgroundTexture, spaceShipTexture,satelliteTexture,saturnRingTexture;
 GLuint planetTexture;
 
 int width, height;
@@ -103,7 +105,7 @@ glm::vec3 currentLightPos, lightPosV;
 
 //L
 //Location for shader uniform variable
-GLuint globalAmbLoc, ambLoc, diffLoc, specLoc, posLoc, mAmbLoc, mDiffLoc, mSpecLoc, mShiLoc, buttonLoc;
+GLuint globalAmbLoc, ambLoc, diffLoc, specLoc, posLoc, mAmbLoc, mDiffLoc, mSpecLoc, mShiLoc, buttonLoc,disLoc;
 glm::vec3 initialLightLoc = glm::vec3(0.0f, 0.0f, 0.0f);
 float lightPos[3];
 //L
@@ -242,6 +244,13 @@ void setupVertices(void)
 	std::vector<glm::vec3> vert1 = spaceShip.getVertices();
 	std::vector<glm::vec2> tex1 = spaceShip.getTextureCoords();
 	std::vector<glm::vec3> norm1 = spaceShip.getNormals();
+	
+	//Satellite
+	std::vector<glm::vec3> vert2 = sat.getVertices();
+	std::vector<glm::vec2> tex2 = sat.getTextureCoords();
+	std::vector<glm::vec3> norm2 = sat.getNormals();
+
+
 
 	std::vector<float>pvalues;
 	std::vector<float>tvalues;
@@ -249,12 +258,18 @@ void setupVertices(void)
 	std::vector<float>tanvalues;
 
 	//SpaceShip
+	std::vector<float>pvalues2;
+	std::vector<float>tvalues2;
+	std::vector<float>nvalues2;
+
+	//Sats
 	std::vector<float>pvalues1;
 	std::vector<float>tvalues1;
 	std::vector<float>nvalues1;
 
 	int numIndices = mySphere.getNumIndices();
 	int numIndices1 = spaceShip.getNumVertices();
+	int numIndices2 = sat.getNumVertices();
 
 	for (int i = 0; i < numIndices; i++)
 	{
@@ -286,6 +301,21 @@ void setupVertices(void)
 		nvalues1.push_back((norm1[i]).x);
 		nvalues1.push_back((norm1[i]).y);
 		nvalues1.push_back((norm1[i]).z);
+	}
+
+
+		for (int i = 0; i < numIndices2; i++)
+	{
+		pvalues2.push_back((vert2[i]).x);
+		pvalues2.push_back((vert2[i]).y);
+		pvalues2.push_back((vert2[i]).z);
+
+		tvalues2.push_back((tex2[i]).s);
+		tvalues2.push_back((tex2[i]).t);
+
+		nvalues2.push_back((norm2[i]).x);
+		nvalues2.push_back((norm2[i]).y);
+		nvalues2.push_back((norm2[i]).z);
 	}
 
 
@@ -328,6 +358,18 @@ void setupVertices(void)
 	//normal
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[7]);
 	glBufferData(GL_ARRAY_BUFFER, nvalues1.size() * 4, &nvalues1[0], GL_STATIC_DRAW);
+
+	//Sat vertices
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[13]);
+	glBufferData(GL_ARRAY_BUFFER, pvalues2.size() * 4, &pvalues2[0], GL_STATIC_DRAW);
+
+	//tex Coordinates
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[14]);
+	glBufferData(GL_ARRAY_BUFFER, tvalues2.size() * 4, &tvalues2[0], GL_STATIC_DRAW);
+
+	//normal
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[15]);
+	glBufferData(GL_ARRAY_BUFFER, nvalues2.size() * 4, &nvalues2[0], GL_STATIC_DRAW);
 
 	//Sphere tangent
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[8]);
@@ -379,6 +421,9 @@ void init(GLFWwindow* window)
 
 	spaceShipTexture = loadTexture("textures/spstob_1.bmp");
 	saturnRingTexture = loadTexture("textures/8k_saturn_ring_alpha.png");
+	//satelliteTexture = loadTexture("textures/satellite_Satélite_BaseColor.jpg");
+	satelliteTexture = loadTexture("textures/sattelite.jpg");
+
 
 
 	//planetTexture = loadTexture("2k_earth_daymap.jpg");
@@ -544,9 +589,13 @@ void display(GLFWwindow* window, double currentTime)
 	currentLightPos = glm::vec3(initialLightLoc.x, initialLightLoc.y, initialLightLoc.z);
 	installLights(vMat);
 
-
+	
 	buttonLoc = glGetUniformLocation(renderingProgram, "distance");
 	glProgramUniform1f(renderingProgram, buttonLoc, dis);
+
+	button = 1;
+	disLoc = glGetUniformLocation(renderingProgram, "button");
+	glProgramUniform1f(renderingProgram, disLoc, button);
 
 	//sun.stackVariable
 	//calculateMotionParameters();
@@ -668,8 +717,8 @@ void display(GLFWwindow* window, double currentTime)
 		else
 		{
 			stars[0].stackVariable.push(stars[0].stackVariable.top());
-			stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance1() * zoomFeature,
-				0.0f, cos(float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance2() * zoomFeature));
+			stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(i)+float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance1() * zoomFeature,
+				0.0f, cos(float(i)+float(currentTime) * planets[i].getRevolutionSpeed()) * 2.0f * planets[i].getDistance2() * zoomFeature));
 			stars[0].stackVariable.push(stars[0].stackVariable.top());
 			stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * planets[i].getAngularSpeed(), glm::vec3(0.0f, 1.0f, 0.0f));
 			stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * planets[i].getScale(), zoomFeature * planets[i].getScale(), zoomFeature * planets[i].getScale()));
@@ -685,6 +734,10 @@ void display(GLFWwindow* window, double currentTime)
 			dis = planets[i].getDistance1();
 			buttonLoc = glGetUniformLocation(renderingProgram, "distance");
 			glProgramUniform1f(renderingProgram, buttonLoc, dis);
+
+			button = 1;
+			disLoc = glGetUniformLocation(renderingProgram, "button");
+			glProgramUniform1f(renderingProgram, disLoc, button);
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -738,7 +791,9 @@ void display(GLFWwindow* window, double currentTime)
 				invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
 				glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
-
+				button = 0;
+				disLoc = glGetUniformLocation(renderingProgram, "button");
+				glProgramUniform1f(renderingProgram, disLoc, button);
 
 				dis = planets[i].getDistance1();
 				buttonLoc = glGetUniformLocation(renderingProgram, "distance");
@@ -792,6 +847,11 @@ void display(GLFWwindow* window, double currentTime)
 				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * planets[i].sats[0].getScale(), zoomFeature * planets[i].sats[0].getScale(), zoomFeature * planets[i].sats[0].getScale()));
 
 
+				button = 1;
+				disLoc = glGetUniformLocation(renderingProgram, "button");
+				glProgramUniform1f(renderingProgram, disLoc, button);
+
+
 				dis = planets[i].getDistance1();
 				buttonLoc = glGetUniformLocation(renderingProgram, "distance");
 				glProgramUniform1f(renderingProgram, buttonLoc, dis);
@@ -830,13 +890,17 @@ void display(GLFWwindow* window, double currentTime)
 				glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 
 				stars[0].stackVariable.pop();
-				//stars[0].stackVariable.push(stars[0].stackVariable.top());
+				stars[0].stackVariable.push(stars[0].stackVariable.top());
 				stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature,
 					0.25f * zoomFeature, cos(float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature));
 				//stars[0].stackVariable.push(stars[0].stackVariable.top());
 				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * 1.4f, glm::vec3(0.0f, 1.0f, 0.0f));
 				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * 0.2, zoomFeature * 0.2, zoomFeature * 0.2));
 
+
+				button = 0;
+				disLoc = glGetUniformLocation(renderingProgram, "button");
+				glProgramUniform1f(renderingProgram, disLoc, button);
 				//L
 				//invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
 
@@ -853,6 +917,10 @@ void display(GLFWwindow* window, double currentTime)
 				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 				glEnableVertexAttribArray(1);
 
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[7]);
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(2);
+
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, spaceShipTexture);
 
@@ -862,6 +930,59 @@ void display(GLFWwindow* window, double currentTime)
 				glDepthFunc(GL_LEQUAL);
 
 				glDrawArrays(GL_TRIANGLES, 0, spaceShip.getNumVertices());
+				//glBindTexture(GL_TEXTURE_2D, 0);
+
+
+
+
+
+
+
+
+
+
+				stars[0].stackVariable.pop();
+				//stars[0].stackVariable.push(stars[0].stackVariable.top());
+				//stars[0].stackVariable.push(stars[0].stackVariable.top());
+				stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(1.0f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature,
+					0.25f * zoomFeature, cos(1.0f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature));
+				//stars[0].stackVariable.push(stars[0].stackVariable.top());
+				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * 1.4f, glm::vec3(0.0f, 1.0f, 0.0f));
+				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * 0.0001, zoomFeature * 0.0001, zoomFeature * 0.0001));
+
+
+				button = 0;
+				disLoc = glGetUniformLocation(renderingProgram, "button");
+				glProgramUniform1f(renderingProgram, disLoc, button);
+				//L
+				//invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
+
+				glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
+				//L
+				//glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[13]);
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(0);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[14]);
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(1);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[15]);
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(2);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, satelliteTexture);
+
+				//glEnable(GL_CULL_FACE);
+				//glFrontFace(GL_CCW);
+				glEnable(GL_DEPTH_TEST);
+				glDepthFunc(GL_LEQUAL);
+
+				glDrawArrays(GL_TRIANGLES, 0, sat.getNumVertices());
 				//glBindTexture(GL_TEXTURE_2D, 0);
 
 			}

@@ -60,7 +60,8 @@ vec4 textureColor = texture(samp,ptc);
 
 vec3 L = normalize(varyingLightDir);
 vec3 N = normalize(varyingNormal);
-if(button==1) vec3 N = calcNewNormal();
+if (button==1) vec3 N = calcNewNormal();
+//vec3 N = calcNewNormal();
 vec3 V = normalize(-varyingVertPos);
 // compute light reflection vector with respect to N:
 vec3 R = normalize(reflect(-L, N));
