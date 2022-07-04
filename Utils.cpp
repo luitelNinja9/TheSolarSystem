@@ -111,6 +111,7 @@ GLuint loadTexture(const char* texImagePath)
 	glBindTexture(GL_TEXTURE_2D,textureID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glGenerateMipmap(GL_TEXTURE_2D);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
 	//if anisotropic filtering
 	if (glewIsSupported("GL_EXT_texture_filter_anisotropic"))
@@ -118,6 +119,7 @@ GLuint loadTexture(const char* texImagePath)
 		GLfloat anisoSetting = 0.0f;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisoSetting);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisoSetting);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	}
 
 

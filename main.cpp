@@ -12,9 +12,11 @@
 #include<vector>
 #include "Stars.h"
 #include "ImportedModel.h"
-//#include "Gravity.h"
+#include "Torus.h"
 
 float all_velocity = 1.0f;
+
+Torus myTorus_ring(0.5f, 0.145f, 48);
 
 float zoomFeature = 1;
 float zoomSensitivity = 0.1f;
@@ -56,7 +58,7 @@ void installLights(glm::mat4 vMatrix);
 
 
 #define numVAOs 1
-#define numVBOs 9
+#define numVBOs 13
 //using namespace std;
 
 
@@ -85,7 +87,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 //Variable used in display
-GLuint mvLoc, projLoc, vLoc, sunTexture, moonTexture, earthNormalTexture, menuButtonTex, skyBackgroundTexture, spaceShipTexture;
+GLuint mvLoc, projLoc, vLoc, sunTexture, moonTexture, earthNormalTexture, menuButtonTex, skyBackgroundTexture, spaceShipTexture,saturnRingTexture;
 GLuint planetTexture;
 
 int width, height;
@@ -185,7 +187,45 @@ void setupVertices(void)
 
 		*/
 
+	glGenVertexArrays(numVAOs, vao);
+	glBindVertexArray(vao[0]);
+	glGenBuffers(numVBOs, vbo);
 
+
+
+	
+		std::vector<int> ind_ring = myTorus_ring.getIndices();
+		std::vector<glm::vec3> vert_ring = myTorus_ring.getVertices();
+		std::vector<glm::vec2> text_ring = myTorus_ring.getTexCoords();
+		std::vector<glm::vec3> norm_ring = myTorus_ring.getNormals();
+		std::vector<float> pvalues_ring;
+		std::vector<float> tvalues_ring;
+		std::vector<float> nvalues_ring;
+		int numVertices = myTorus_ring.getNumVertices();
+		for (int i = 0; i < numVertices; i++) {
+			pvalues_ring.push_back(vert_ring[i].x);
+			pvalues_ring.push_back(vert_ring[i].y);
+			pvalues_ring.push_back(vert_ring[i].z);
+			tvalues_ring.push_back(text_ring[i].s);
+			tvalues_ring.push_back(text_ring[i].t);
+			nvalues_ring.push_back(norm_ring[i].x);
+			nvalues_ring.push_back(norm_ring[i].y);
+			nvalues_ring.push_back(norm_ring[i].z);
+		}
+
+		// generate VBOs as before, plus one for indices
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[9]);
+		// vertex positions
+		glBufferData(GL_ARRAY_BUFFER, pvalues_ring.size() * 4, &pvalues_ring[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[10]);
+		// texture coordinates
+		glBufferData(GL_ARRAY_BUFFER, tvalues_ring.size() * 4, &tvalues_ring[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[11]);
+		// normal vectors
+		glBufferData(GL_ARRAY_BUFFER, nvalues_ring.size() * 4, &nvalues_ring[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[12]); // indices
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_ring.size() * 4, &ind_ring[0], GL_STATIC_DRAW);
+	
 
 
 	std::vector<int> ind = mySphere.getIndices();
@@ -246,12 +286,10 @@ void setupVertices(void)
 	}
 
 
+	
 
 
 
-	glGenVertexArrays(numVAOs, vao);
-	glBindVertexArray(vao[0]);
-	glGenBuffers(numVBOs, vbo);
 
 	//Sphere vertices
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -337,6 +375,7 @@ void init(GLFWwindow* window)
 	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	spaceShipTexture = loadTexture("textures/spstob_1.bmp");
+	saturnRingTexture = loadTexture("textures/8k_saturn_ring_alpha.png");
 
 
 	//planetTexture = loadTexture("2k_earth_daymap.jpg");
@@ -497,7 +536,7 @@ void display(GLFWwindow* window, double currentTime)
 
 	*/
 
-
+	
 	//Build view,model and model-view matrix
 	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 
@@ -568,6 +607,18 @@ void display(GLFWwindow* window, double currentTime)
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 		//glBindTexture(GL_TEXTURE_2D, 0);
 		stars[i].stackVariable.pop();
+
+
+		
+
+
+
+
+
+
+
+
+
 		//}
 	}
 
@@ -613,6 +664,24 @@ void display(GLFWwindow* window, double currentTime)
 			glDepthFunc(GL_LEQUAL);
 
 			glDrawArrays(GL_TRIANGLES, 0, spaceShip.getNumVertices());
+
+
+
+
+
+
+
+
+			
+
+
+
+
+
+
+
+
+
 			//glBindTexture(GL_TEXTURE_2D, 0);
 		}
 		else
@@ -671,6 +740,52 @@ void display(GLFWwindow* window, double currentTime)
 			button = 0;
 			buttonLoc = glGetUniformLocation(renderingProgram, "button");
 			glProgramUniform1i(renderingProgram, buttonLoc, button);
+
+	
+			if (i == 5)
+			{
+				stars[0].stackVariable.pop();
+				stars[0].stackVariable.push(stars[0].stackVariable.top());
+				//stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(float(currentTime) * saturn.getRevolutionSpeed()) * 1.0f * saturn.getDistance1() * zoomFeature,
+				//		0.0f, cos(float(currentTime) * saturn.getRevolutionSpeed()) * 1.0f * saturn.getDistance2() * zoomFeature));
+				stars[0].stackVariable.push(stars[0].stackVariable.top());
+				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(sin(0.3f*currentTime))*1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(sin(0.3f*currentTime))*1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * 3.0f, zoomFeature * 0.5f, zoomFeature *2.7f));
+
+
+				invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
+				glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+				glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
+				//glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[9]);
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(0);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[10]);
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(1);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[11]);
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(2);
+
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, saturnRingTexture);
+
+				glEnable(GL_DEPTH_TEST);
+				glDepthFunc(GL_LEQUAL);
+
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[12]);
+				glDrawElements(GL_TRIANGLES, myTorus_ring.getNumIndices(), GL_UNSIGNED_INT, 0);
+			}
+
+
+
+
+
 
 			///*
 			if (planets[i].withSattelite())
@@ -760,6 +875,7 @@ void display(GLFWwindow* window, double currentTime)
 
 			}
 		}
+
 
 
 		stars[0].stackVariable.pop();
@@ -878,12 +994,6 @@ void display(GLFWwindow* window, double currentTime)
 	//glProgramUniform1i(renderingProgram, buttonLoc, button);
 
 
-
-
-
-
-
-
 }
 
 
@@ -933,11 +1043,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		delta += rotationSensitivity;
 
-			Rotation = (glm::rotate(glm::mat4(1.0f), delta, glm::vec3(0, 1, 0)));
+		Rotation = (glm::rotate(glm::mat4(1.0f), delta, glm::vec3(0, 1, 0)));
 	}
-	
+
 	if (key == GLFW_KEY_UP && (action == GLFW_REPEAT || action == GLFW_PRESS)) cameraY += moveSensitivity;
-	
+
 
 
 	if (key == GLFW_KEY_Q && (action == GLFW_REPEAT || action == GLFW_PRESS)) {
@@ -945,12 +1055,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		delta -= rotationSensitivity;
 		Rotation = (glm::rotate(glm::mat4(1.0f), delta, glm::vec3(0, 1, 0)));
 	}
-	
+
 	if (key == GLFW_KEY_DOWN && (action == GLFW_REPEAT || action == GLFW_PRESS)) cameraY -= moveSensitivity;
 	if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS))
 	{
-			cameraZ += moveSensitivity * sin(delta);
-			cameraX += moveSensitivity * cos(delta);
+		cameraZ += moveSensitivity * sin(delta);
+		cameraX += moveSensitivity * cos(delta);
 	}
 	if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS))
 	{
@@ -959,13 +1069,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS))
 	{
-		cameraX += moveSensitivity * cos(delta-(3.1415/2));
+		cameraX += moveSensitivity * cos(delta - (3.1415 / 2));
 		cameraZ += moveSensitivity * sin(delta - (3.1415 / 2));
 	}
 	if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS))
 	{
-			cameraX -= moveSensitivity * cos(delta - (3.1415 / 2));
-			cameraZ -= moveSensitivity * sin(delta - (3.1415 / 2));
+		cameraX -= moveSensitivity * cos(delta - (3.1415 / 2));
+		cameraZ -= moveSensitivity * sin(delta - (3.1415 / 2));
 	}
 }
 
