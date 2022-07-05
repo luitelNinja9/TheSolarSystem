@@ -33,9 +33,9 @@ std::vector<Planet>planets;
 
 
 Star sun = Star(6, 0.3f, "8k_sun.jpg", glm::vec3(0.0f, 0.0f, 0.0f));
-ImportedModel spaceShip("spaceShip.obj");
-ImportedModel sat("sattelite.obj");
-ImportedModel sat1("Satellite.obj");
+ImportedModel spaceShip("models/spaceShip.obj");
+ImportedModel sat("models/sattelite.obj");
+ImportedModel sat1("models/Satellite.obj");
 //ImportedModel sat("Satellite.obj");
 
 vector<Sattelite> dummy = { Sattelite(0,0,0,0,0) };
@@ -461,10 +461,10 @@ void setupShadowBuffers(GLFWwindow* window) {
 void init(GLFWwindow* window)
 {
 	//Create thr program and save it in a global variable
-	renderingProgram = createShaderProgram("vert_phong.glsl", "frag_phong.glsl");
-	backgroundProgram = createShaderProgram("vertShaderBackground.glsl", "fragShaderBackground.glsl");
+	renderingProgram = createShaderProgram("shaders/vert_phong.glsl", "shaders/frag_phong.glsl");
+	backgroundProgram = createShaderProgram("shaders/vertShaderBackground.glsl", "shaders/fragShaderBackground.glsl");
 
-	//renderingProgramUI = createShaderProgram("vertShaderB.glsl", "fragShaderB.glsl");
+	//renderingProgramUI = createShaderProgram("shaders/vertShaderB.glsl", "shaders/fragShaderB.glsl");
 	cameraX = 0.0f; cameraY = -0.5f; cameraZ = 8.0f;
 	setupVertices();
 
