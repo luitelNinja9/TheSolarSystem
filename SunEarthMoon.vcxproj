@@ -172,6 +172,9 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="nothing.txt" />
+    <Text Include="tes.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Text>
     <Text Include="test.txt" />
   </ItemGroup>
   <ItemGroup>

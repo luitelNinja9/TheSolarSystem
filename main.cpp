@@ -14,7 +14,7 @@
 #include "ImportedModel.h"
 #include "Torus.h"
 
-float all_velocity = 0.0f;
+float all_velocity = 1.0f;
 
 Torus myTorus_ring(0.5f, 0.145f, 48);
 
@@ -35,6 +35,7 @@ std::vector<Planet>planets;
 Star sun = Star(6, 0.3f, "8k_sun.jpg", glm::vec3(0.0f, 0.0f, 0.0f));
 ImportedModel spaceShip("spaceShip.obj");
 ImportedModel sat("sattelite.obj");
+ImportedModel sat1("Satellite.obj");
 //ImportedModel sat("Satellite.obj");
 
 vector<Sattelite> dummy = { Sattelite(0,0,0,0,0) };
@@ -53,6 +54,14 @@ Planet saturn = Planet(8, 1.5f, 14.9f, 14.5f, 0.3f * all_velocity, dummy);
 Planet uranus = Planet(7, 1.6f, 17.9f, 17.8f, 0.2f * all_velocity, dummy);
 Planet neptune = Planet(6, 1.7f, 22.4f, 22.0f, 0.1f * all_velocity, dummy);
 
+int screenSizeX, screenSizeY;
+GLuint shadowTex, shadowBuffer;
+glm::mat4 lightVmatrix;
+glm::mat4 lightPmatrix;
+glm::mat4 shadowMVP1;
+glm::mat4 shadowMVP2;
+glm::mat4 b;
+
 
 
 GLuint planet_textures[8];
@@ -63,7 +72,7 @@ void installLights(glm::mat4 vMatrix);
 
 
 #define numVAOs 1
-#define numVBOs 16
+#define numVBOs 19
 //using namespace std;
 
 
@@ -92,7 +101,7 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
 //Variable used in display
-GLuint mvLoc, projLoc, vLoc, sunTexture, moonTexture, earthNormalTexture, menuButtonTex, skyBackgroundTexture, spaceShipTexture,satelliteTexture,saturnRingTexture;
+GLuint mvLoc, projLoc, vLoc, sunTexture, moonTexture, earthNormalTexture, menuButtonTex, skyBackgroundTexture, spaceShipTexture,satelliteTexture,satelliteTexture1,saturnRingTexture;
 GLuint planetTexture;
 
 int width, height;
@@ -250,6 +259,10 @@ void setupVertices(void)
 	std::vector<glm::vec2> tex2 = sat.getTextureCoords();
 	std::vector<glm::vec3> norm2 = sat.getNormals();
 
+	std::vector<glm::vec3> vert3 = sat1.getVertices();
+	std::vector<glm::vec2> tex3 = sat1.getTextureCoords();
+	std::vector<glm::vec3> norm3 = sat1.getNormals();
+
 
 
 	std::vector<float>pvalues;
@@ -267,9 +280,14 @@ void setupVertices(void)
 	std::vector<float>tvalues1;
 	std::vector<float>nvalues1;
 
+	std::vector<float>pvalues3;
+	std::vector<float>tvalues3;
+	std::vector<float>nvalues3;
+
 	int numIndices = mySphere.getNumIndices();
 	int numIndices1 = spaceShip.getNumVertices();
 	int numIndices2 = sat.getNumVertices();
+	int numIndices3 = sat1.getNumVertices();
 
 	for (int i = 0; i < numIndices; i++)
 	{
@@ -316,6 +334,20 @@ void setupVertices(void)
 		nvalues2.push_back((norm2[i]).x);
 		nvalues2.push_back((norm2[i]).y);
 		nvalues2.push_back((norm2[i]).z);
+	}
+		
+		for (int i = 0; i < numIndices3; i++)
+	{
+		pvalues3.push_back((vert3[i]).x);
+		pvalues3.push_back((vert3[i]).y);
+		pvalues3.push_back((vert3[i]).z);
+
+		tvalues3.push_back((tex3[i]).s);
+		tvalues3.push_back((tex3[i]).t);
+
+		nvalues3.push_back((norm3[i]).x);
+		nvalues3.push_back((norm3[i]).y);
+		nvalues3.push_back((norm3[i]).z);
 	}
 
 
@@ -371,10 +403,54 @@ void setupVertices(void)
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[15]);
 	glBufferData(GL_ARRAY_BUFFER, nvalues2.size() * 4, &nvalues2[0], GL_STATIC_DRAW);
 
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[16]);
+	glBufferData(GL_ARRAY_BUFFER, pvalues3.size() * 4, &pvalues3[0], GL_STATIC_DRAW);
+
+	//tex Coordinates
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[17]);
+	glBufferData(GL_ARRAY_BUFFER, tvalues3.size() * 4, &tvalues3[0], GL_STATIC_DRAW);
+
+	//normal
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[18]);
+	glBufferData(GL_ARRAY_BUFFER, nvalues3.size() * 4, &nvalues3[0], GL_STATIC_DRAW);
+
 	//Sphere tangent
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[8]);
 	glBufferData(GL_ARRAY_BUFFER, tanvalues.size() * 4, &tanvalues[0], GL_STATIC_DRAW);
 }
+
+void setupShadowBuffers(GLFWwindow* window) {
+	glfwGetFramebufferSize(window, &width, &height);
+	screenSizeX = width;
+	screenSizeY = height;
+	// create the custom frame buffer
+	glGenFramebuffers(1, &shadowBuffer);
+	// create the shadow texture and configure it to hold depth information.
+	// these steps are similar to those in Program 5.2
+	glGenTextures(1, &shadowTex);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32,
+		screenSizeX, screenSizeY, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+		GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //Step 4 : Init(Definition)  :: Application Specific initialization
 //Buffers are created in init or at start of the program
@@ -421,8 +497,9 @@ void init(GLFWwindow* window)
 
 	spaceShipTexture = loadTexture("textures/spstob_1.bmp");
 	saturnRingTexture = loadTexture("textures/8k_saturn_ring_alpha.png");
-	//satelliteTexture = loadTexture("textures/satellite_Satélite_BaseColor.jpg");
+	satelliteTexture1 = loadTexture("textures/satellite_Satélite_BaseColor.jpg");
 	satelliteTexture = loadTexture("textures/sattelite.jpg");
+	//satelliteTexture1 = loadTexture("textures/satellite_Satélite_BaseColor.jpg");
 
 
 
@@ -442,6 +519,12 @@ void init(GLFWwindow* window)
 	planets.push_back(saturn);
 	planets.push_back(uranus);
 	planets.push_back(neptune);
+	setupShadowBuffers(window);
+	b = glm::mat4(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.5f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.5f, 0.0f,
+		0.5f, 0.5f, 0.5f, 1.0f);
 
 }
 
@@ -503,17 +586,17 @@ void display(GLFWwindow* window, double currentTime)
 	glEnable(GL_DEPTH_TEST);
 
 
-	//Loads the program containing two compiled shaders into OpenGL pipeline stages(GPU)
-
-
-
 
 	glUseProgram(renderingProgram);
-
 
 	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
 	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
 	GLuint nLoc = glGetUniformLocation(renderingProgram, "norm_matrix");
+
+
+
+
+
 	//GLuint dis = glGetUniformLocation(renderingProgram, "distance");
 	//Build Perspective matrix
 	//glfwGetFramebufferSize(window, &width, &height);
@@ -902,11 +985,11 @@ void display(GLFWwindow* window, double currentTime)
 				disLoc = glGetUniformLocation(renderingProgram, "button");
 				glProgramUniform1f(renderingProgram, disLoc, button);
 				//L
-				//invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
+				invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
 
 				glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
 				//L
-				//glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+				glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
 
 				glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
@@ -942,10 +1025,10 @@ void display(GLFWwindow* window, double currentTime)
 
 
 				stars[0].stackVariable.pop();
+				stars[0].stackVariable.push(stars[0].stackVariable.top());
 				//stars[0].stackVariable.push(stars[0].stackVariable.top());
-				//stars[0].stackVariable.push(stars[0].stackVariable.top());
-				stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(1.0f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature,
-					0.25f * zoomFeature, cos(1.0f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature));
+				stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(1.5f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature,
+					0.25f * zoomFeature, cos(1.5f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature));
 				//stars[0].stackVariable.push(stars[0].stackVariable.top());
 				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * 1.4f, glm::vec3(0.0f, 1.0f, 0.0f));
 				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * 0.0001, zoomFeature * 0.0001, zoomFeature * 0.0001));
@@ -955,11 +1038,11 @@ void display(GLFWwindow* window, double currentTime)
 				disLoc = glGetUniformLocation(renderingProgram, "button");
 				glProgramUniform1f(renderingProgram, disLoc, button);
 				//L
-				//invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
+				invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
 
 				glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
 				//L
-				//glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+				glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
 
 
 				glBindBuffer(GL_ARRAY_BUFFER, vbo[13]);
@@ -977,12 +1060,52 @@ void display(GLFWwindow* window, double currentTime)
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, satelliteTexture);
 
-				//glEnable(GL_CULL_FACE);
-				//glFrontFace(GL_CCW);
+				glEnable(GL_CULL_FACE);
+				glFrontFace(GL_CCW);
 				glEnable(GL_DEPTH_TEST);
 				glDepthFunc(GL_LEQUAL);
 
-				glDrawArrays(GL_TRIANGLES, 0, sat.getNumVertices());
+				glDrawArrays(GL_TRIANGLES, 0, sat.getNumVertices());	
+				
+				stars[0].stackVariable.pop();
+				//stars[0].stackVariable.push(stars[0].stackVariable.top());
+				//stars[0].stackVariable.push(stars[0].stackVariable.top());
+				stars[0].stackVariable.top() *= glm::translate(glm::mat4(1.0f), glm::vec3(sin(3.0f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature,
+					0.25f * zoomFeature, cos(3.0f+float(currentTime) * 1.4f) * 2.0f * 0.4f * zoomFeature));
+				//stars[0].stackVariable.push(stars[0].stackVariable.top());
+				stars[0].stackVariable.top() *= glm::rotate(glm::mat4(1.0f), float(currentTime) * 1.4f, glm::vec3(0.0f, 1.0f, 0.0f));
+				stars[0].stackVariable.top() *= glm::scale(glm::mat4(1.0f), glm::vec3(zoomFeature * 0.04, zoomFeature * 0.04, zoomFeature * 0.04));
+
+
+				//L
+				invTrMat = glm::transpose(glm::inverse(stars[0].stackVariable.top()));
+
+				glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(stars[0].stackVariable.top()));
+				//L
+				glUniformMatrix4fv(nLoc, 1, GL_FALSE, glm::value_ptr(invTrMat));
+
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[16]);
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(0);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[17]);
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(1);
+
+				glBindBuffer(GL_ARRAY_BUFFER, vbo[18]);
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				glEnableVertexAttribArray(2);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, satelliteTexture1);
+
+				glEnable(GL_CULL_FACE);
+				glFrontFace(GL_CCW);
+				glEnable(GL_DEPTH_TEST);
+				glDepthFunc(GL_LEQUAL);
+
+				glDrawArrays(GL_TRIANGLES, 0, sat1.getNumVertices());
 				//glBindTexture(GL_TEXTURE_2D, 0);
 
 			}

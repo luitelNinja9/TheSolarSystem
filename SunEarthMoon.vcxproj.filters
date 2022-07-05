@@ -87,6 +87,9 @@
     <Text Include="nothing.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="tes.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Object Include="Satellite.obj">

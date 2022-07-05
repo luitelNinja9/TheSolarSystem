@@ -73,7 +73,7 @@ float cosTheta = dot(L,N);
 float cosPhi = dot(V,R);
 //float cosPhi = dot(H,N);
 
-float attenDis = 1/(1.0f + 0.3f*distance + 0.3f*distance*distance);
+float attenDis = 1/(1.0f + 0.6f*distance + 0.3f*distance*distance);
 // compute ADS contributions (per pixel), and combine to build output color:
 vec3 ambient = ((globalAmbient ) + (light.ambient*5.0f )).xyz;
 vec3 diffuse = light.diffuse.xyz  * max(cosTheta,0.0);
